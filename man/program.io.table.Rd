@@ -17,5 +17,13 @@ Create program io table
 }
 \details{
 groups inputs and outputs
+
+Not for direct use.
+}
+\examples{
+\dontrun{
+trees <- Harvest.trees(pull_source_info("adaprHome")$dependency.dir)
+program.io.table(trees)
+} 
 }
 

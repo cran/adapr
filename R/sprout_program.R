@@ -6,7 +6,7 @@
 #' @param capture.load.command Command for loading inference tree library
 #' @param controller logical to insert lines that operate on analysis tree
 #' @return Logical indicating success or not
-#' @details Will not overwrite existing program
+#' @details Will not overwrite existing program. Not for direct use. See make.program().
 #' @export
 #' 
 sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed=2011,capture.load.command="library(adapr)",controller=FALSE){
@@ -31,12 +31,9 @@ sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed
   
 
   
-  controller.lines <- c( "#sync.test.si(source_info)     #Tests project synchronization ",
-                     "#source.sync.si(source_info,run=TRUE) # This runs all programs needed to synchronize",
-                       "#project.report()               #This summarizes project in html",
-                         "#sprout.program(source_info$project.id,source.file.name=\"myprog.R\",\"Describe myprog\") #makes new program",
-                         "#send.branch(branch_cut,all=FALSE) #this packages a analytical branch ans sends to swap directory",
-                       "#graft.branch(branch_name,run=TRUE,start.up=FALSE,project.id=NULL,overwriteTF=FALSE) #This loads and runs branch")
+  controller.lines <- c( "#synctest.project()     #Tests project synchronization ",
+                     "#sync.project()  # This runs all programs needed to synchronize",
+                       "#report.project()              #This summarizes project in html")
   
   if(controller){final.line <- controller.lines}
   
@@ -61,3 +58,36 @@ sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed
   return(FALSE)
   
 }
+
+
+
+#' Generates the shell of a code that is project specific
+#' @param project.id Name of project
+#' @param r is source file name or Filename to create
+#' @param description What program does
+#' @param seed Random start seed
+#' @param run Execute r script?
+#' @return Logical indicating failure or not
+#' @details Will not overwrite existing program. Executes program stub. Mostly wrapper for sprout.program.
+#' @export
+#' @examples 
+#'\dontrun{
+#'  make.program("adaprHome","read_data.R")
+#'} 
+make.program <- function(project.id=get.project(),r="",description="",seed=2011,run=TRUE){
+  
+  if(!(toupper(gsub(".*\\.","",r))=="R")){
+    
+    print("Error make.program: Scripname doesn't end in .R")
+    
+    return(FALSE)
+    
+  }
+  
+  out <- sprout.program(project.id,source.file.name=r,description=,seed)
+  
+  if(run){run.program(project.id,r)}
+
+  return(out)
+}
+

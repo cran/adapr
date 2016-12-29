@@ -1,6 +1,7 @@
 #' Initializes dependency object source_info
 #' @param source_info_arg is a source_info list with describing R script and project
 #' @return Depedency file location
+#' @details Not for direct use.
 #' @export
 #' 
 initialize_dependency_info <- function(source_info_arg){
@@ -34,19 +35,28 @@ initialize_dependency_info <- function(source_info_arg){
   
   try({
     
-    gitout <- git.init(project.path)
+    #gitout <- git.init(project.path)
     
-    setwd(source_info_arg$analysis.dir)
+    #setwd(source_info_arg$analysis.dir)
     
-    git_binary_path <- git_path(NULL)
-    if(source_info_arg$git.log){temp <- system2(git_binary_path,"log",stdout="")}else{
-    temp <- system2(git_binary_path,"log",stdout=NULL)}
+    #git_binary_path <- git_path(NULL)
+    #if(source_info_arg$git.log){temp <- system2(git_binary_path,"log",stdout="")}else{
+    #temp <- system2(git_binary_path,"log",stdout=NULL)}
     
-    if(temp==128){
+    no.repository <- TRUE
+    try({
+      no.repository <- (0==length(git2r::commits(git2r::repository(project.path))))
+    },silent = TRUE)
+    
+    if(no.repository){
       
-      git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
+      #git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
+      #git.commit(project.path,"Intitialize git")
       
-      git.commit(project.path,"Intitialize git")
+      git2r::init(project.path)
+      repo <- git2r::repository(project.path)
+      git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))
+      git2r::commit(repo,message ="Initialize git")
       
       print("Initialized git repo")
       
@@ -56,6 +66,9 @@ initialize_dependency_info <- function(source_info_arg){
     
   })#try get
   }
+  
+  
+  
   
   #  git.add(project.path,file.path(dependency.file))	
   

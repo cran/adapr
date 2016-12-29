@@ -5,22 +5,29 @@
 #' @param git_args string argument for git
 #' @param git_binary location of git executable
 #' @return git output from git add
-#' @author Uses git_path adapted form devtools author Hadley Wickham
+#' @author Uses git2r package.
 #' @export
+#' @examples 
+#'\dontrun{
+#' si <- pull_source_info("adaprHome")
+#' file0 <- file.path(si$project.path,project.directory.tree$analysis,"read_data.R")
+#' git.add(si$project.path,file0) 
+#'} 
 #' 
 git.add <- function(gitdir,filename,branch = NULL, git_args = character(), git_binary = NULL){
   
   # "add" filename in the git repository in gitdir
   
-  git_binary_path <- git_path(git_binary)
+  repo <- git2r::repository(gitdir)
+
+  git2r::add(repo,filename)    
   
-  args <- c("add",shQuote(filename))
+#  git_binary_path <- git_path(git_binary)
+#  args <- c("add",shQuote(filename))
+#  setwd(gitdir)
+#  git.out <- system2(git_binary_path, args, stdout = TRUE, stderr = TRUE)
   
-  setwd(gitdir)
   
-  git.out <- system2(git_binary_path, args, stdout = TRUE, stderr = TRUE)
-  
-  
-  return(git.out)
+  return(git2r::status(repo))
   
 }

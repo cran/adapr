@@ -4,6 +4,12 @@
 #' @param plot.to.file logical for writing file in tree_controller.R directory
 #' @return Data.frame with sources needed to synchronize with run times
 #' @export
+#' @details Not usually direct use. See sync.project() and synctest.project().
+#' @examples 
+#'\dontrun{
+#' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
+#' source.sync.si(source_info)
+#'} 
 source.sync.si <- function(source_info,run=TRUE,plot.to.file=FALSE){
   
   # Run in order 
@@ -49,8 +55,8 @@ source.sync.si <- function(source_info,run=TRUE,plot.to.file=FALSE){
   
   run.times <- plyr::ddply(tree.to.run,"source.file",function(x){
     
-    last.run.time <- max(as.POSIXct(x$target.mod.time)-as.POSIXct(x$source.run.time),na.rm=TRUE)
-    
+    last.run.time <- max(difftime(as.POSIXct(x$target.mod.time) ,
+                                  as.POSIXct(x$source.run.time),units="secs"), na.rm = TRUE)
     
     return(data.frame(last.run.time.sec=last.run.time))
     

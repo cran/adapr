@@ -3,8 +3,7 @@
 \name{project_report_markdown}
 \alias{project_report_markdown}
 \title{Make plot of network within html documents.
-Summarize all programs.
-Uses pandoc unlike project_report}
+Summarize all programs.}
 \usage{
 project_report_markdown(source_info, graph.width = 960, graph.height = 500)
 }
@@ -15,12 +14,21 @@ project_report_markdown(source_info, graph.width = 960, graph.height = 500)
 
 \item{graph.height}{Sankey Plot dimensions}
 }
+\value{
+output file
+}
 \description{
 Make plot of network within html documents.
 Summarize all programs.
-Uses pandoc unlike project_report
 }
 \details{
 Dose not assume source_info in workspace
+}
+\examples{
+\dontrun{
+ source_info <- create_source_file_dir("adaprHome","tree_controller.R")
+ project_report_markdown(source_info)
+} 
+
 }
 

@@ -1,12 +1,17 @@
 #' Make plot of network within html documents.
 #' Summarize all programs.
-#' Uses pandoc unlike project_report
 #' @param source_info Source information list
 #' @param graph.width Sankey Plot dimensions
 #' @param graph.height Sankey Plot dimensions
+#' @return output file
 #' @details Dose not assume source_info in workspace
 #' @export
-#' 
+#' @examples 
+#'\dontrun{
+#'  source_info <- create_source_file_dir("adaprHome","tree_controller.R")
+#'  project_report_markdown(source_info)
+#'} 
+#'
 project_report_markdown<-
 
 function (source_info, graph.width = 960, graph.height = 500) 
@@ -69,8 +74,8 @@ programs$source.file.fullname <- file.path(programs$source.file.path,
 
 
 run.times <- plyr::ddply(project.info$tree, "source.file", function(x) {
-  last.run.time <- max(as.POSIXct(x$target.mod.time) - 
-                         as.POSIXct(x$source.run.time), na.rm = TRUE)
+  last.run.time <- max(difftime(as.POSIXct(x$target.mod.time) ,
+                         as.POSIXct(x$source.run.time),units="secs"), na.rm = TRUE)
   return(data.frame(last.run.time.sec = last.run.time))
 })
 
@@ -129,8 +134,39 @@ write("\n",file.path(targetdirectory,targetfile),append=TRUE)
 
 }
 
-rmarkdown::render(file.path(targetdirectory,targetfile))
+fileout <- file.path(targetdirectory,targetfile)
 
-return(paste("Made",si$project.id,"project summary."))
+rmarkdown::render(fileout)
+
+paste("Made",si$project.id,"project summary.")
+
+return(fileout)
 
 }
+
+
+#' Make plot of network within html documents.
+#' Summarize all programs.
+#' @param project.id Source information list
+#' @param graph.width Sankey Plot dimensions
+#' @param graph.height Sankey Plot dimensions
+#' @details Dose not assume source_info in workspace
+#' @return File path to report html file
+#' @export
+#'@examples 
+#'\dontrun{
+#' report.project("adaprHome")
+#'}  
+report.project <- function (project.id=get.project(), graph.width = 960, graph.height = 500){
+  
+  source_info <- pull_source_info(project.id)
+  
+  out <- project_report_markdown(source_info,graph.width, graph.height)
+  
+  out <- gsub("Rmd$","html",out)
+  
+  return(out)
+  
+}
+
+
