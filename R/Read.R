@@ -48,8 +48,8 @@ Read <- function(file.name="data.csv",description="Data file",read.fcn=guess.rea
 
 
 #' Tracks files that read by functions not in adapr and captures the file information within dependency object
-#' @param file.name name of file
-#' @param description description of data file
+#' @param file.name name of file (vectorized)
+#' @param description description of data file (vectorized)
 #' @details Allows tracking of files read by other functions than Read. Assumes file is in project "Data" directory
 #' @return Filepath of file to read
 #' @export
@@ -77,18 +77,25 @@ ReadTrack <- function(file.name="data.csv",description="Data file"){
     
   }
   
+  # Vectorize
+  if(length(file.name)>1){
+    if(length(description)==1){description <- rep(description,length(file.name))}
+    if(length(description)!=length(file.name)){stop("ReadTrack (adapr) error: file length description mismatch")}
+  }
   
-  if(dirname(file.name)!="."){
-    inpath <- file.path(source_info$data.dir,dirname(file.name))
-    file.name <- basename(file.name)
+  for(i in 1:length(file.name)){
+  
+  if(dirname(file.name[i])!="."){
+    inpath <- file.path(source_info$data.dir,dirname(file.name[i]))
+    file.name[i] <- basename(file.name[i])
   }else{inpath <- source_info$data.dir}
   
-  if(!file.exists(file.path(inpath,file.name))){stop(paste("Read error: file does not exists:",file.path(inpath,file.name)))}
+  if(!file.exists(file.path(inpath,file.name[i]))){stop(paste("Read error: file does not exists:",file.path(inpath,file.name)))}
   
-  file.info <- Create.file.info(inpath,basename(file.name),description)
+  file.info <- Create.file.info(inpath,basename(file.name[i]),description[i])
   
   read.obj <- Read.cap(file.info,I,source_info)
-  
+  }
   return(read.obj)
   
 }
