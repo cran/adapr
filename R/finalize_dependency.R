@@ -2,7 +2,11 @@
 #' @param RMD Logical denoting whether the finalizing occurs in markdown vs R script
 #' @param write Logical indicated to write the dependency object
 #' @details Operates git tracking of program and dependency file. 
-#' @details Strips project directory out of dependency file
+#' @details Strips project directory out of dependency file.
+#' Passes workspace to R markdown file and render.
+#' Stores file modification and hash for all dependencies.
+#' Writes dependency information to \file{Dependency} directory.
+#' Adds dependency file and Session information to Git.
 #' @return dependency.object 
 #' @export
 #' @examples 
@@ -11,7 +15,6 @@
 #' #finalize_dependency() 
 #'} 
 #' 
-
 finalize_dependency <- function(RMD=TRUE,write=TRUE){
   
   # read in dependency object from dependency.file in source_info
@@ -25,26 +28,27 @@ finalize_dependency <- function(RMD=TRUE,write=TRUE){
     
   }
   
+  source_info <- getSourceInfo()
  
   current.dir <- getwd()
   # Copy and render Rmd file
   file.copy(source_info$rmdfile$fullname,file.path(source_info$results.dir,source_info$rmdfile$file),overwrite=TRUE)
   if(!checkRmdMode()){
   outputfile <- rmarkdown::render(file.path(source_info$results.dir,source_info$rmdfile$file))
-  outfile <- Create.file.info(source_info$results.dir, basename(outputfile), paste("rendered Rmarkdown of", source_info$file$file))
+  outfile <- createFileInfo(source_info$results.dir, basename(outputfile), paste("rendered Rmarkdown of", source_info$file$file))
   Write.cap(NULL, outfile, I, source_info)
   }else{
     outputfile <- gsub("Rmd","html",file.path(source_info$results.dir,source_info$rmdfile$file))
-    outfile <- Create.file.info(source_info$results.dir, basename(outputfile), paste("rendered Rmarkdown of", source_info$file$file))
+    outfile <- createFileInfo(source_info$results.dir, basename(outputfile), paste("rendered Rmarkdown of", source_info$file$file))
     if(!file.exists(outfile$fullname)){write(0,outfile$fullname)} # Write a stub for tracking
     Write.cap(NULL, outfile, I, source_info)
   }
   Read.cap(source_info$rmdfile, I, source_info)
   file.remove(file.path(source_info$results.dir,source_info$rmdfile$file))
+  
+  Write(devtools::session_info(),paste0("Session_info_",source_info$file$db.name,".RObj"),paste0("sessionInfo for", source_info$file[["file"]]),saveRDS)
+  
 
-  
-  Write(utils::sessionInfo(),paste0("Session_info_",source_info$file$db.name,".RObj"),paste0("sessionInfo for", source_info$file[["file"]]),save)
-  
   # Render the markdown
     
   dependency.file <- file.path(source_info$dependency.dir,source_info$dependency.file)
@@ -59,10 +63,11 @@ finalize_dependency <- function(RMD=TRUE,write=TRUE){
   
   project.path <- dependency.out$project.path[1]
   
+  
   dependency.out$source.git <- NA
     if(source_info$options$git){
   try({
-   # dependency.out$source.git <- paste(git.info(as.character(dependency.out$path[1]),file.path(dependency.out$source.file.path[1],dependency.out$source.file)[1])[1:5],collapse=" ")
+   # dependency.out$source.git <- paste(gitInfo(as.character(dependency.out$path[1]),file.path(dependency.out$source.file.path[1],dependency.out$source.file)[1])[1:5],collapse=" ")
     dependency.out$source.git <- commit2char(git2r::commits(git2r::repository(source_info$project.path))[[1]])
     
   })	
@@ -71,8 +76,9 @@ finalize_dependency <- function(RMD=TRUE,write=TRUE){
   
   dependency.out$source.hash <-   Digest(file=file.path(dependency.out$source.file.path[1],dependency.out$source.file[1]),serialize=FALSE) 
   
+  # note: nrow(dependency.out) must be > 0
   
-  for(dep.row.iter in 1:nrow(dependency.out)){
+  for(dep.row.iter in seq_along(dependency.out[,1])){
     
     target.file <- file.path(dependency.out$target.path[dep.row.iter],dependency.out$target.file[dep.row.iter])
     
@@ -83,12 +89,9 @@ finalize_dependency <- function(RMD=TRUE,write=TRUE){
     dependency.out$target.mod.time[dep.row.iter] <- as.character(file.info(as.character(target.file))$mtime)
     
   }
-
-
   dependency.out <- subset(dependency.out,""!=dependency.out$target.hash)
   
   dependency.out <- subset(dependency.out,!duplicated(file.path(as.character(dependency.out$target.path),as.character(dependency.out$target.file))))
-
   setwd(current.dir)
     
   if(write){
@@ -109,7 +112,9 @@ finalize_dependency <- function(RMD=TRUE,write=TRUE){
     write.dependency(trees,dependency.file)
     
     if(source_info$options$git){
-    	try({	git.add(project.path,file.path(dependency.file))	})
+    	try({	gitAdd(project.path,file.path(dependency.file))	})
+      try({gitAdd(project.path,paste0("Session_info_",source_info$file$db.name,".RObj"))})
+      
     }
        
     

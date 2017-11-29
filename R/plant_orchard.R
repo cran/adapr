@@ -3,10 +3,10 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#'  plant.orchard()
+#'  plantOrchard()
 #'} 
 #'
-plant.orchard <- function(){
+plantOrchard <- function(){
   
   # 
   
@@ -16,7 +16,7 @@ plant.orchard <- function(){
     
     dir.create(file.path(path.expand.2("~"),"ProjectPaths"))
     
-    empty.orchard <- data.frame(project.id="",project.path="",swap.directory="")[-1,]	
+    empty.orchard <- data.frame(project.id="",project.path="",swap.directory="",project.libraryTF="FALSE",library.path="")[-1,]	
     
     utils::write.csv(empty.orchard,orchard.site,row.names=FALSE)
     
@@ -26,8 +26,6 @@ plant.orchard <- function(){
   
   return(FALSE)
 }
-
-
 #' Create first project
 #' @param project.path Path where first project will go
 #' @param publish.path Path to share project results
@@ -35,11 +33,11 @@ plant.orchard <- function(){
 #' @export
 #' @examples 
 #'\dontrun{
-#'  opt <- get_adapr_options()
-#'  first.project(opt$project.path,opt$publish.path)
+#'  opt <- getAdaprOptions()
+#'  firstProject(opt$project.path,opt$publish.path)
 #'} 
 #' 
-first.project <- function(project.path="",publish.path=""){
+firstProject <- function(project.path="",publish.path=""){
 #project.path <- "/Users/Gelfond/Documents/Projects"
 #publish.path <- "/Users/Gelfond/Documents/Projects/Swap"
   orchard.site <- get_orchard()	
@@ -50,15 +48,12 @@ first.project <- function(project.path="",publish.path=""){
   	
   	# Create orchard
   	
-  	plant.orchard()
+  	plantOrchard()
  
   }
  
   
-  testout <- plant.tree(project.id,project.path,publish.path)   
+  testout <- plantTree(project.id,project.path,publish.path)   
   
   return(testout)
 }
-
-
-

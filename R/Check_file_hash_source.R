@@ -1,29 +1,31 @@
-#' Checks the consistency of the dependency directory with the files within the file system
-#' Reports the source scripts that need to be updated!
+#' Checks the consistency of the dependency directory with the files within the file system.
+#' Reports the source scripts that need to be updated.
 #' @param dependency.dir Directory with dependency information files
 #' @param dependency.object data frame with dependency information
 #' @details Only needs one or the other argument. 
-#' @return list of information about file hase mismatches
+#' @return list of information about file hash mismatches
 #' @export
 #' @examples 
 #' \dontrun{
 #' 
-#' Check.file.hash.source(pull_source_info("adaprHome")$dependency.dir)
+#' checkFileHashSource(pullSourceInfo("adaprHome")$dependency.dir)
 #' } 
 #' 
-Check.file.hash.source <- function(dependency.dir=NULL,dependency.object=NULL){
+checkFileHashSource <- function(dependency.dir=NULL,dependency.object=NULL){
   
   #equire(plyr)
   
   if(is.null(dependency.object)){
     
-    trees <- Harvest.trees(dependency.dir)
+    trees <- readDependency(dependency.dir)
     trees <- subset(trees,!is.na(dependency))
   }else{trees <- dependency.object}
   
   source.df <- subset(trees,!duplicated(trees$source.hash))
   
   #Check source hashes are current
+  
+  missingIsTrue <- function(x){return(ifelse(is.na(x),TRUE,x))}
   
   source.hash.check <- plyr::ddply(source.df,c("source.file","source.file.path"),function(x){
     
@@ -32,16 +34,14 @@ Check.file.hash.source <- function(dependency.dir=NULL,dependency.object=NULL){
      	current.hash <- Digest(file=file.path(x$source.file.path[1],x$source.file[1]),serialize=FALSE)
    		 })
     
-		hash.fail <- current.hash != x$source.hash    
+		hash.fail <- missingIsTrue(current.hash != x$source.hash)    
 	    
     return(data.frame(hash.fail))
   })
   
   failed.sources <- subset(source.hash.check,source.hash.check$hash.fail)
-
   failed.sources$file <- failed.sources$source.file
   failed.sources$path <- failed.sources$source.file.path
-
   #Check target hashes are current
   
   target.hash.check <- plyr::ddply(trees,c("source.file","source.file.path","target.path","target.file"),function(x){
@@ -51,7 +51,7 @@ Check.file.hash.source <- function(dependency.dir=NULL,dependency.object=NULL){
      	 current.hash <- Digest(file=file.path(x$target.path[1],x$target.file[1]),serialize=FALSE)
    		 })
     
-		x$hash.fail <- current.hash != x$target.hash    
+		x$hash.fail <- missingIsTrue(current.hash != x$target.hash)    
 		
 		return(x)
     

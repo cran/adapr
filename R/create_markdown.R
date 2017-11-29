@@ -1,4 +1,4 @@
-#' Renders and Rmarkdown file
+#' Creates an Rmarkdown file in specified directory
 #' @param target.file Markdown file to create
 #' @param target.dir Directory to send target file
 #' @param style Markdown target style
@@ -12,27 +12,23 @@
 #'\dontrun{
 #' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
 #' #Create markdown file in markdown directory for tree_controller.R
-#' create_markdown()
+#' createMarkdown()
 #'} 
 #' 
 #' 
-
-create_markdown <- function(target.file=paste0(get("source_info")$file$file,"md"),target.dir=get("source_info")$markdown.dir,style="html_document",description="Markdown",si,overwrite=FALSE){
+createMarkdown <- function(target.file=paste0(getSourceInfo()$file$file,"md"),target.dir=getSourceInfo()$markdown.dir,style="html_document",description="Markdown",si,overwrite=FALSE){
 	
-	file.information <- Create.file.info(target.dir,target.file,description=description)
+	file.information <- createFileInfo(target.dir,target.file,description=description)
 		
 	target.file <- file.path(target.dir,target.file)
-
 #	Read.cap(file.information,read.fcn=I,source_info=si)
   
 	
 	if((!overwrite)&file.exists(target.file)){return(file.information)}
 	
-  adapr_options <- get_adapr_options()
-
+  adapr_options <- getAdaprOptions()
   if(adapr_options$git=="TRUE"){
-	git_binary_path <- git_path(NULL)
-	author <- system2(git_binary_path, paste("config --global user.name"),stdout = TRUE)
+	author <- git2r::config()[["global"]]$user.name
   }else{author <- adapr_options$username}
 	
 	start.lines.generic <- c("---",
@@ -40,26 +36,21 @@ create_markdown <- function(target.file=paste0(get("source_info")$file$file,"md"
 							paste("author:",paste0("\"",author,"\"")),
 							paste("output:",style),
 							"---",
-							"```{r,echo=FALSE,message=FALSE,warning=FALSE,include=FALSE}\n require(adapr) \n require(methods) \n
-							paste0(\"Created on \",(Sys.time() ))\n
-							```\n\n\n",
+							"```{r,echo=FALSE,message=FALSE,warning=FALSE,include=FALSE}\n require(\"adapr\") \n require(\"methods\") \n",
+							"require(\"knitr\") \n",
+              "paste0(\"Created on \",(Sys.time() ))\n",
+							"```\n\n\n",
 							paste0("```{r,echo=FALSE,message=FALSE,warning=FALSE,include=FALSE}\n # scriptLoader(",
-							          paste0("\"",si$project.id,"\""),
+							paste0("\"",si$project.id,"\""),
 							                              ",", 
-                        paste0("\"",si$file$file  ,"\""),")","\n",
+              paste0("\"",si$file$file  ,"\""),")","\n",
 							      
-							      "```\n\n\n\n"),
-							"```{r,echo=FALSE} \n if(checkRmdMode()){dependency.out <- finalize_dependency() } \n ```")
+							      "\n```\n\n\n\n"),
+							"\n```{r,echo=FALSE} \n if(checkRmdMode()){dependency.out <- finalize_dependency() } \n```")
 								
 	start.lines.generic <- paste(start.lines.generic,collapse="\n")
 	
-	
-
-	
 	write(start.lines.generic,target.file)
-	
-	
-	
 	
 	return(file.information)
 	

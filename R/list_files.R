@@ -1,186 +1,103 @@
 #' Lists the branches available for loading in the adapr project
-#' @param si is source_info object
-#' @return dataframe of descriptions available branches
-#' @export
-#' @examples 
-#'\dontrun{
-#' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
-#` listBranches()
-#'} 
-listBranches <- function(si=get("source_info")){
-  
-  file_data <- si$all.files
-  
-  warning("deprecated: see list.branches")
-  
-  if(length(file_data$file)==0){
-    print("No available branch files")
-    return(NULL)
-  }
-  
-  file_sub  <- subset(file_data,grepl("Rdata$",file_data$file),select = c("file","path","description"))
-  
-  if(length(file_sub$file)==0){
-    print("No available branches")
-    return(NULL)
-  }
-  
-  file_sub$path <- gsub(".*/","",file_sub$path)
-  return(file_sub)
-  
-}
-
-
-#' Lists the branches available for loading in the adapr project
 #' @param project.id project to find branches within
 #' @return dataframe of descriptions available branches
 #' @export
 #' @examples 
 #' \dontrun{
-#' list.branches("adaprHome")
+#' listBranches("adaprHome")
 #'} 
 #'
 #' 
-list.branches <- function(project.id=get.project()){
+listBranches <- function(project.id=getProject()){
   
   file_data <- list(file=NULL)
   
-  si <- pull_source_info(project.id)
+  si <- pullSourceInfo(project.id)
   
   dependency.dir <- si$dependency.dir
   
+  # Search for branches (intermediate results loaded by other R scripts)
+  
   try({
-    treedf <- Harvest.trees(dependency.dir)
+    treedf <- readDependency(dependency.dir)
     not.this.source <- subset(treedf,(!is.na(dependency)))
-    file_data$file<- Condense.file.info(not.this.source)
+    file_data$file<- condenseFileInfo(not.this.source)
   },silent=TRUE)
   
-
   if(length(file_data$file)==0){
     print("No available branch files")
     return(NULL)
   }
   
-  file_sub  <- subset(file_data$file,grepl("Rdata$",file_data$file$file),select = c("file","path","description"))
+  file_sub  <- subset(file_data$file,grepl("(rda$)|(rdata$)",tolower(file_data$file$file)),select = c("file","path","description"))
   
   if(length(file_sub$file)==0){
     print("No available branches")
     return(NULL)
   }
   
-  file_sub$path <- gsub(".*/","",file_sub$path)
+  file_sub$path <- gsub(file.path(getProjectPath(),"Results/"),"",file_sub$path)
   return(file_sub)
   
 }
-
-
-#' Lists the R scripts in the adapr project
-#' @param  project.id project.id
-#' @return dataframe of R scripts and descriptions
-#' @details Deprecated see list.programs
-#' @export
-#' 
-listScripts<- function(project.id=get("source_info")$project.id){
-  warning("deprecated: see list.programs")
-  
-  trees <- Harvest.trees(file.path(get.project.path(project.id),project.directory.tree$dependency.dir))
-  
-  programs <- subset(trees,!duplicated(file.path(trees$source.file.path,trees$source.file)),
-                    select=c("source.file","source.file.description"))
-  
-  
-  return(programs)
-  
-}
-
+list.branches <- listBranches
 #' Lists the R scripts in the adapr project
 #' @param  project.id project.id
 #' @return dataframe of R scripts and descriptions
 #' @export
 #' @examples 
 #' \dontrun{
-#' list.programs("adaprHome")
+#' listScripts("adaprHome")
 #'} 
 #'
-list.programs <- function(project.id=get.project()){
-
-  trees <- Harvest.trees(file.path(get.project.path(project.id),project.directory.tree$dependency.dir))
+#'
+listScripts <- function(project.id=getProject()){
+  
+  
+  trees <- readDependency(file.path(getProjectPath(project.id),project.directory.tree$dependency.dir))
   
   programs <- subset(trees,!duplicated(file.path(trees$source.file.path,trees$source.file)),
                      select=c("source.file","source.file.description"))
   
+  run.times <- plyr::ddply(trees, "source.file", 
+                           function(x) {
+                             last.run.time <- max(difftime(as.POSIXct(x$target.mod.time), 
+                                                           as.POSIXct(x$source.run.time), units = "secs"), 
+                                                  na.rm = TRUE)
+                             return(data.frame(last.run.time.sec = last.run.time))
+                           })
+  programs <- merge(programs, run.times, by = "source.file")
+  
   return(programs)
   
 }
-
-
-
-
-
-
-
-
-
-
-
-#' Lists the data files available for reading in the adapr project
-#' @param si is source_info object
-#' @return description of data files
-#' @details Deprecated. See list.datafiles()
+#' Returns the information related to the adapr script
+#' @return list with information about the project
 #' @export
-#' 
-listDatafiles <- function(si=get("source_info")){
+#' @examples 
+#' \dontrun{
+#' getSourceInfo()
+#'} 
+#'
+getSourceInfo <- function(){
   
-  warning("deprecated: see list.datafiles")
+  return(options()$adaprScriptInfo)
   
-  allfiles <- data.frame(file=list.files(si$data.dir,recursive=TRUE,full.names = 1),stringsAsFactors = FALSE)
-  
-  allfiles$path <- dirname(substring(as.character(allfiles$file),nchar(si$project.path)+2,nchar(as.character(allfiles$file))))
-  
-  allfiles$file <- basename(allfiles$file)
-
-    
-  file_data <- si$all.files
-  file_sub <- data.frame()
-  try({
-  file_sub <- subset(file_data,file_data$path==si$data.dir,select = c("file","path","description"))
-  })
-  
-  if(is.null(file_sub)){
-    return(allfiles)
-    }
-  
-  
-  if(nrow(file_sub)==0){
-    
-    return(allfiles)
-    
-  }
-
-  file_sub$path <- gsub(".*/","",file_sub$path)
-  
-  allfiles <- merge(allfiles,file_sub,by=c("file","path"),all.x=TRUE)
-  
-  return(allfiles)
   
 }
-
 #' Lists the data files available for reading in the adapr project
 #' @param project.id Project to look for data files within
 #' @return description of data files
 #' @export
 #' @examples 
 #' \dontrun{
-#' list.datafiles("adaprHome")
+#' listDatafiles("adaprHome")
 #'} 
 #'
-
-
-
-list.datafiles <- function(project.id=get.project()){
+listDatafiles <- function(project.id=getProject()){
   
   
-  si <- pull_source_info(project.id)
+  si <- pullSourceInfo(project.id)
   
   si$data.dir <- file.path(si$project.path,project.directory.tree$data)
   allfiles <- data.frame(file=list.files(si$data.dir,recursive=TRUE,full.names = 1),stringsAsFactors = FALSE)
@@ -194,9 +111,9 @@ list.datafiles <- function(project.id=get.project()){
   dependency.dir <- si$dependency.dir
   
   try({
-    treedf <- Harvest.trees(dependency.dir)
+    treedf <- readDependency(dependency.dir)
     not.this.source <- subset(treedf,(!is.na(dependency)))
-    file_data$file <- Condense.file.info(not.this.source)
+    file_data$file <- condenseFileInfo(not.this.source)
   },silent=TRUE)
   
   
@@ -223,30 +140,6 @@ list.datafiles <- function(project.id=get.project()){
   return(allfiles)
   
 }
-
-
-
-
-
-#' Opens results directory
-#' @param si is source_info object
-#' @param project.id character string specifies project 
-#' @param rscript character string specifies the R script result directory to open
-#' @details Deprecated: use show.results(). Uses BrowseURL to open results directory
-#' @export
-#' 
-showResults <- function(si=get("source_info"),project.id="",rscript=""){
-  warning("deprecated: see show.results")
-  if(project.id==""){
-    utils::browseURL(si$results.dir)
-  }else{
-    resultdir <- file.path(get.project.path(project.id),project.directory.tree$results,rscript)
-    utils::browseURL(resultdir)
-  }
-}
-
-
-
 #' Opens results directory of project or R script within a project
 #' @param project.id character string specifies project 
 #' @param rscript character string specifies the R script result directory to open
@@ -254,53 +147,61 @@ showResults <- function(si=get("source_info"),project.id="",rscript=""){
 #' @export
 #' @examples 
 #' \dontrun{
-#' show.results("adaprHome")
+#' showResults("adaprHome")
 #'} 
 #'
-show.results <- function(project.id=get.project(),rscript=""){
+showResults <- function(project.id=getProject(),rscript=getSourceInfo()$file$file){
   
-  si <- pull_source_info(project.id)
+  si <- pullSourceInfo(project.id)
   
   if(rscript==""){
-    utils::browseURL(file.path(get.project.path(project.id),project.directory.tree$results))
+    utils::browseURL(file.path(getProjectPath(project.id),project.directory.tree$results))
   }else{
-    resultdir <- file.path(get.project.path(project.id),project.directory.tree$results,rscript)
+    resultdir <- file.path(getProjectPath(project.id),project.directory.tree$results,rscript)
     utils::browseURL(resultdir)
   }
 }
-
-
-#' Opens project directory
-#' @param si is source_info object
-#' @param project.id character string specifies project to open
-#' @details Use BrowseURL to open project directory
-#' @export
-#' 
-showProject <- function(si=get("source_info"),project.id = ""){
-  warning("deprecated: see show.project")
-  if(project.id==""){
-    utils::browseURL(si$project.path)
-  }else{
-    utils::browseURL(get.project.path(project.id))
-  }
-}
-
-
-
 #' Opens project directory
 #' @param project.id character string specifies project to open
 #' @details Use BrowseURL to open project directory.
 #' @export
 #' @examples 
 #' \dontrun{
-#' show.project("adaprHome")
+#' showProject("adaprHome")
 #'} 
 #'
  
-show.project <- function(project.id =get.project()){
+showProject <- function(project.id =getProject()){
  
-    utils::browseURL(get.project.path(project.id))
-
+    utils::browseURL(getProjectPath(project.id))
 }
-
-
+#' Returns project's data directory, allows relative directories. Used within an R script.
+#' @param project.id project specifies which data directory
+#' @return path to data directory
+#' @export
+#' @examples 
+#' \dontrun{
+#' dataDir(getProject())
+#'} 
+dataDir <- function(project.id =getProject()){
+  
+  dataDir <- file.path(getProjectPath(project.id),project.directory.tree$data)
+  
+  return(dataDir)
+  
+}
+#' Returns project's results directory, allows relative directories. Only used within an R script, after create_source_file_dir.
+#' @param sourceInfo R source_info list created by create_source_file_dir
+#' @return path to data directory
+#' @export
+#' @examples 
+#' \dontrun{
+#' resultsDir(getSourceInfo())
+#'} 
+resultsDir <- function(sourceInfo = getSourceInfo()){
+  
+  resultsDir <- sourceInfo$results.dir
+  
+  return(resultsDir)
+  
+}

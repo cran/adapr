@@ -2,14 +2,14 @@
 #' Summarize all programs.
 #' @param project.id Project id of program
 #' @return List of data.frame of programs vertices, data.frame of edges, ggplot ,rgrapher=igraph
-#' @details Deprecated. See graph.project()
+#' @details Deprecated. See graphProject()
 #'@examples 
 #'\dontrun{
-#'  create_program_graph_v2("adaprHome")
+#'  createProgramGraph2("adaprHome")
 #'} 
 #'  
  
-create_program_graph_v2<- function(project.id){
+#create_program_graph_v2<- function(project.id){
 	
 # computes transitively connected subpgraph of project DAG
 # given a project id (project.id)
@@ -17,11 +17,11 @@ create_program_graph_v2<- function(project.id){
 # #equire(ggplot2)
 # #equire(plyr)	
 # 
-# si <- pull_source_info(project.id)
+# si <- pullSourceInfo(project.id)
 # 
-# projinfo <- get.project.info.si(si)
+# projinfo <- getProjectInfoSI(si)
 # 
-# unsync.vertex <- c("",as.character(sync.test.si(si)$sources.to.sync$fullname.abbr))
+# unsync.vertex <- c("",as.character(syncTestSI(si)$sources.to.sync$fullname.abbr))
 # 
 # projgraph <- projinfo$graph
 # 
@@ -218,8 +218,6 @@ create_program_graph_v2<- function(project.id){
 #             
 # 
 # return(list(vertex=dfo,edges=froms,ggplot=proj.gg,rgrapher=isg))
-
-
-} #
+#} #
  
  

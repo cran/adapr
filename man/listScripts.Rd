@@ -4,7 +4,7 @@
 \alias{listScripts}
 \title{Lists the R scripts in the adapr project}
 \usage{
-listScripts(project.id = get("source_info")$project.id)
+listScripts(project.id = getProject())
 }
 \arguments{
 \item{project.id}{project.id}
@@ -15,7 +15,10 @@ dataframe of R scripts and descriptions
 \description{
 Lists the R scripts in the adapr project
 }
-\details{
-Deprecated see list.programs
-}
+\examples{
+\dontrun{
+listScripts("adaprHome")
+} 
 
+
+}

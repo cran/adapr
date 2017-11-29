@@ -2,25 +2,49 @@
 #' @param r R script within that project (r is short R script for convenience)
 #' @param project.id project id
 #' @param logRmd logical indicating whether to create R markdown log
+#' @aliases {run.program}
 #' @return value from clean_source from devtools package
+#' @details Lists scripts if no current script is active or r script is "".
 #' @export
 #'@examples 
 #'\dontrun{
 #' run.program("read_data.R","adaprHome")
 #'} 
 #' 
-run.program <- function(r=get("source_info")$file$file,project.id=get.project(),logRmd=FALSE){
+runScript <- function(r=getSourceInfo()$file$file,project.id=getProject(),logRmd=FALSE){
+  
+  
+  r <- ifelse((length(r)==0),"",r)
+  
+  if((r=="")){
+    
+    files <- list.files(file.path(getProjectPath(getProject()),"Programs"))
+    
+    files <- grep("\\.R",files,value=TRUE)
+    
+    df <- listScripts()
+    df <- df[order(df$source.file),]
+    print(df)
+    
+    n <- as.integer(readline("Which script?"))
+    
+    if(!(n %in% 1:length(files))){n <- 1}
+    
+    r <- df$source.file[n]
+    
+  }
+  
   
   source.file <- r
   
-  scriptfile <- file.path(get.project.path(project.id),project.directory.tree$analysis,source.file)
+  scriptfile <- file.path(getProjectPath(project.id),project.directory.tree$analysis,source.file)
   
   # get project object
   if(!logRmd){
     out <- devtools::clean_source(scriptfile)
   }else{
     
-    results <- file.path(get.project.path(project.id),project.directory.tree$results,source.file)
+    results <- file.path(getProjectPath(project.id),project.directory.tree$results,source.file)
     
     dir.create(results,showWarnings=FALSE)
     
@@ -35,7 +59,7 @@ run.program <- function(r=get("source_info")$file$file,project.id=get.project(),
   
     temphtml <- file.path(results,paste0(dbname,"_adapr_results_log.html"))
     
-    dependency.file <- file.path(get.project.path(project.id),project.directory.tree$dependency.dir,
+    dependency.file <- file.path(getProjectPath(project.id),project.directory.tree$dependency.dir,
                                  paste0(source.file,".txt"))
     
     write(program,tempmkdown)
@@ -77,10 +101,6 @@ run.program <- function(r=get("source_info")$file$file,project.id=get.project(),
 }
 
 
-
-
-
-
 #' Remove an R script from a project. Removes program, dependency, and results.
 #' @param source.file R script within that project
 #' @param project.id project id
@@ -94,7 +114,10 @@ run.program <- function(r=get("source_info")$file$file,project.id=get.project(),
 #' remove.program("adaprHome","read_data.R")
 #'} 
 #' 
-remove.program <- function(project.id=get.project(),source.file=get("source_info")$file$file,ask=TRUE){
+#' 
+#' 
+
+removeScript <- function(project.id=getProject(),source.file=get("source_info")$file$file,ask=TRUE){
   # get project object
   
   if(ask){
@@ -109,21 +132,25 @@ remove.program <- function(project.id=get.project(),source.file=get("source_info
   }
   
   
-  program <- file.path(get.project.path(project.id),project.directory.tree$analysis,source.file)
-  dependencyDir <- file.path(get.project.path(project.id),project.directory.tree$dependency.dir,
+  program <- file.path(getProjectPath(project.id),project.directory.tree$analysis,source.file)
+  dependencyDir <- file.path(getProjectPath(project.id),project.directory.tree$dependency.dir,
                 paste0(source.file,".txt"))
-  results <- file.path(get.project.path(project.id),project.directory.tree$results,source.file)
+  results <- file.path(getProjectPath(project.id),project.directory.tree$results,source.file)
   
   markdownfile <- gsub("\\.r$|\\.R","\\.Rmd",source.file)
-  markdownfile <- file.path(get.project.path(project.id),project.directory.tree$analysis,
+  markdownfile <- file.path(getProjectPath(project.id),project.directory.tree$analysis,
                             "Markdown",markdownfile)
   inside.results <- list.files(results,full.names=TRUE,recursive = TRUE)
   
-  while(length(inside.results)>0){
+  counter <- 0
+  
+  while((length(inside.results)>0)&(counter < 1000)){
   
   inside.out <- file.remove(inside.results)
   
   inside.results <- list.files(results,full.names=TRUE,recursive = TRUE,include.dirs = TRUE)
+  
+  counter <- counter + 1
   
   }
   
@@ -133,8 +160,4 @@ remove.program <- function(project.id=get.project(),source.file=get("source_info
     
   return(c(results,inside.out,results))
 }
-
-
-
-
 

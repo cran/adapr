@@ -6,22 +6,22 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' trees <- Harvest.trees(pull_source_info("adaprHome")$dependency.dir)
-#' dag<-Make.summary.graph(dependency.obj=trees)
+#' trees <- readDependency(pullSourceInfo("adaprHome")$dependency.dir)
+#' dag<-makeSummaryGraph(dependency.obj=trees)
 #' plot(dag)
 #'} 
-Make.summary.graph <- function(dependency.dir=NULL,dependency.object=NULL,plot.graph=FALSE){
+makeSummaryGraph <- function(dependency.dir=NULL,dependency.object=NULL,plot.graph=FALSE){
   
   #equire(igraph)
   
   if(is.null(dependency.object)){
     
-    trees <- Harvest.trees(dependency.dir)
+    trees <- readDependency(dependency.dir)
     
     trees <- subset(trees,!is.na(dependency))
   }else{trees <- dependency.object}
   
-  g.all <- Make.dependency.graph.obj(trees)
+  g.all <- makeDependencyGraphObj(trees)
   
   suffixes <- gsub(".*\\.","",igraph::V(g.all)$name)  	
   
@@ -39,7 +39,7 @@ Make.summary.graph <- function(dependency.dir=NULL,dependency.object=NULL,plot.g
   file.type.df$shape <- shape.vector[as.character(file.type.df$file.type)]
   
   
-  all.file.info <- Condense.file.info(trees)
+  all.file.info <- condenseFileInfo(trees)
   
   all.file.info$fullname.abbr <- file.path(all.file.info$path.abbr,all.file.info$file)
   

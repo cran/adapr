@@ -12,6 +12,9 @@ orchard
 \description{
 Returns the primary hub file with project location and id information
 }
+\details{
+Not for direct use. See listProjects for direct use.
+}
 \examples{
 \dontrun{
 orchard <- get_orchard()
@@ -20,4 +23,3 @@ print(subset(orchard,project.id=="adaprHome"))
 
 
 }
-

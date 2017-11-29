@@ -13,9 +13,7 @@
 #'  hist(rnorm(100))
 #'  dev.off()
 #'} 
-
-
-Graph <- function(file.name="data.csv",description="Result file",write.fcn=guess.write.fcn(file.name),date=FALSE,...){
+Graph <- function(file.name="data.csv",description="Result file",write.fcn=guessWriteFcn(file.name),date=FALSE,...){
   
   # lightweight Write.cap take small number of args
   # used file.name and description create file.information
@@ -53,9 +51,9 @@ Graph <- function(file.name="data.csv",description="Result file",write.fcn=guess
   
   outfile <- basename(file.name)
   
-  file.info <- Create.file.info(outpath,outfile,description)
+  file.info <- createFileInfo(outpath,outfile,description)
   
-  write.obj <-Write.cap(obj,file.info,write.fcn,source_info,...)
+  write.obj <-Write.cap(obj,file.info,write.fcn,options()$adaprScriptInfo,...)
   
   return(file.info)
   

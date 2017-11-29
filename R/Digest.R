@@ -13,7 +13,7 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#'  file0 <- file.path(pull_source_info("adaprHome")$project.path,
+#'  file0 <- file.path(pullSourceInfo("adaprHome")$project.path,
 #'  project.directory.tree$analysis,"read_data.R")
 #'  Digest(file=file0)
 #'} 
@@ -41,7 +41,6 @@ Digest <- function (object=NULL, algo=checkAdaprHashAlgo(),serialize = FALSE, fi
   return(val)
 }
     
-
 #' Checks or changes the specified adapr hash algorithm (adaprHashAlgo option)
 #' @param hashAlgorithm characters specifying adaprHash algorithm if changing
 #' @return value is specified algorithm or default algorithm
@@ -84,4 +83,3 @@ checkAdaprHashAlgo <- function(hashAlgorithm=""){
   return(hashAlgorithm)
   
 }
-

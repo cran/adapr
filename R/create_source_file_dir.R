@@ -3,7 +3,15 @@
 #' @param source.file0 filename of the source
 #' @param source.description character description of what the source file does 
 #' @return source_info list describing the project
-#' @details Intializes git for the project, adds program git tracking, and initializes dependency tracking
+#' @details Intializes git for the project, adds program git tracking, creates project library and initializes dependency tracking.
+#' Creates directories for Project and Results. Initialize the file tracking object source_info.
+#' Gathers file information on all project files.Initialize Git for project (if using Git).
+#' Adds dependencies files to Git
+#' Initialized archivist  repo for script 
+#' Run all R scripts in support_function directory 
+#' Run all R scripts in script specific support_function/myRscript.R directory 
+#' Create R markdown file with same file prefix (if not already done).
+#' Create publication file (if not already done). 
 #' @export
 #' @examples 
 #'\dontrun{
@@ -12,23 +20,23 @@
 #' 
 create_source_file_dir <- function(project.id0=get("project.id"),source.file0=get("source.file"),source.description=""){
   #equire(devtools)
-
-  set.project(project.id0,TRUE)
+  setProject(project.id0,TRUE)
   
-    project.path <- get.project.path(project.id0)
+  project.path <- getProjectPath(project.id0)
   project.tree <- project.directory.tree
   
   
   analysis.dir <- file.path(project.path,project.tree$analysis) # where the programs are
   data.dir <- file.path(project.path,project.tree$data)  # where the data are
   results.dir <- file.path(project.path,project.tree$results,source.file0) # Standard output
+  archivist.dir <- file.path(results.dir,"archivist")
   tex.dir <- file.path(results.dir,project.directory.tree$tex.dir) # Publication quality output
-  dependency.dir <- file.path(project.path,project.tree$dependency.dir)
-  support.dir <- file.path(project.path,project.tree$support)
-  library.dir <- file.path(support.dir,project.tree$library.bank)
-  source.support.dir <- file.path(support.dir,gsub("\\.(R|r)$","_R",source.file0))
-  apps.dir <- file.path(support.dir,"Apps")
-  markdown.dir <- file.path(analysis.dir,"Markdown")
+  dependency.dir <- file.path(project.path,project.tree$dependency.dir) #where dependency files are stored
+  support.dir <- file.path(project.path,project.tree$support) # where functions and libraries are stored
+  library.dir <- file.path(support.dir,project.tree$library.bank) # where library is stored
+  source.support.dir <- file.path(support.dir,gsub("\\.(R|r)$","_R",source.file0)) # where source specific libraries are stored
+  apps.dir <- file.path(support.dir,"Apps") # where project apps are stored
+  markdown.dir <- file.path(analysis.dir,"Markdown")  # where the markdown directory is
   
   project.tree <- project.directory.tree
   
@@ -38,9 +46,13 @@ create_source_file_dir <- function(project.id0=get("project.id"),source.file0=ge
   
   # Create necessary directories
   
-  apply(matrix(c(analysis.dir,data.dir,results.dir,tex.dir,dependency.dir,support.dir,library.dir,apps.dir,source.support.dir,markdown.dir   )),1,dir.create,showWarnings=FALSE,recursive=TRUE)
+  apply(matrix(c(analysis.dir,data.dir,results.dir,tex.dir,dependency.dir,support.dir,library.dir,apps.dir,source.support.dir,markdown.dir,archivist.dir   )),1,dir.create,showWarnings=FALSE,recursive=TRUE)
   
-  source.file.info <- Create.file.info(analysis.dir,source.file0,description=source.description)	
+  print("Created Script directories")
+  
+  suppressWarnings(archivist::createLocalRepo(archivist.dir))
+  
+  source.file.info <- createFileInfo(analysis.dir,source.file0,description=source.description)	
   
   source_info <- list(analysis.dir=analysis.dir,data.dir=data.dir,tex.dir=tex.dir,results.dir=results.dir,support.dir = support.dir,library.dir=library.dir,
                       dependency.dir=dependency.dir,file=source.file.info,source.support.dir=source.support.dir,markdown.dir=markdown.dir,support.library.file="common_libs.csv")
@@ -48,12 +60,12 @@ create_source_file_dir <- function(project.id0=get("project.id"),source.file0=ge
   source_info$project.id <- project.id0
   source_info$project.path <- project.path	
   
-  source_info$options <- get_adapr_options(TRUE)
+  source_info$options <- getAdaprOptions(TRUE)
   
   try({
-    treedf <- Harvest.trees(dependency.dir)
+    treedf <- readDependency(dependency.dir)
     not.this.source <- subset(treedf,(treedf$source.file!=source_info$file[["file"]])&(!is.na(dependency)))
-    if (nrow(not.this.source)){source_info$all.files<- Condense.file.info(not.this.source)}
+    if (nrow(not.this.source)){source_info$all.files<- condenseFileInfo(not.this.source)}
   },silent=TRUE)
   
   source_info$dependency.file <- paste(source.file.info[2],".txt",sep="")	
@@ -68,9 +80,11 @@ create_source_file_dir <- function(project.id0=get("project.id"),source.file0=ge
   
   source_info$options$git <- ifelse(is.null(source_info$options$git),TRUE,source_info$options$git=="TRUE")
   
+  options(adaprScriptInfo = source_info) 
+  
   initialize_dependency_info(source_info)
   
-  #Start html markup tracking
+  #Start html r markdown tracking
   
     
   if(source_info$options$git){
@@ -88,8 +102,7 @@ create_source_file_dir <- function(project.id0=get("project.id"),source.file0=ge
   
   targetfile <- paste0(source_info$file$file,"md")
   targetdir <- source_info$markdown.dir
-
-  source_info$rmdfile <- create_markdown(target.file= targetfile,target.dir=targetdir,style="html_document",description=source_info$file$description,source_info)
+  source_info$rmdfile <- createMarkdown(target.file= targetfile,target.dir=targetdir,style="html_document",description=source_info$file$description,source_info)
   
   # Create publication file list
   
@@ -105,6 +118,8 @@ create_source_file_dir <- function(project.id0=get("project.id"),source.file0=ge
   
   #print(source_info)
   
+  options(adaprScriptInfo = source_info) 
+   
   return(source_info)
   
 }	

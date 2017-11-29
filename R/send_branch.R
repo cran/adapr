@@ -3,13 +3,12 @@
 #' @param all logical indicating whether to send all branches in project 
 #' @export
 #' 
-
-send.branch <- function(branch_cut,all=FALSE){
+sendBranch <- function(branch_cut,all=FALSE){
   
   
   source_info <- get("source_info")
   
-  project_info <- get.project.info.si(source_info)
+  project_info <- getProjectInfoSI(source_info)
   
   if(!all){
     
@@ -33,7 +32,6 @@ send.branch <- function(branch_cut,all=FALSE){
     branch.names <- igraph::V(project_info$graph)$file[branch]  # These are in order
     
     programs <- subset(project_info$tree,project_info$tree$source.file %in% c(branch.names))
-
     programs <- subset(programs,!duplicated(programs$source.file))
     
   }	
@@ -45,7 +43,7 @@ send.branch <- function(branch_cut,all=FALSE){
   
   dependency.file.paths <- file.path(programs$source.file.path,"Dependency",paste0(branch.names,".txt"))
   
-  swap.directory <- get.project.swap.directory(source_info$project.id)
+  swap.directory <- getProjectSwapPath(source_info$project.id)
   
   branch.dir <- file.path(swap.directory,"Branches",branch_cut)
   

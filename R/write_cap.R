@@ -1,4 +1,4 @@
-#' Write data and capture the file information within dependency object
+#' Lower level function that writes data and captures the file information within dependency object
 #' @param obj object to write, if null then open graphics device
 #' @param file.info file information list 
 #' @param write.fcn function to write file
@@ -11,10 +11,9 @@
 #'\dontrun{
 #' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
 #' testfile <- file.path(source_info$results.dir,"test.csv")
-#' fileinfo <- Create.file.info(dirname(testfile),basename(testfile),"cars dataset")
+#' fileinfo <- createFileInfo(dirname(testfile),basename(testfile),"cars dataset")
 #' Write.cap(cars,fileinfo,write.csv,source_info,row.names=FALSE)
 #'} 
-
 Write.cap <- function(obj=NULL,file.info,write.fcn,source_info,...){
   
   # write obj to file using write.fcn

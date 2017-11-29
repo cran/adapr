@@ -9,12 +9,11 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#'  si <- pull_source_info("adaprHome")
-#'  git.history.search(si$project.path,"read_data.R")
+#'  si <- pullSourceInfo("adaprHome")
+#'  gitHistorySearch(si$project.path,"read_data.R")
 #'} 
 #' 
-
-git.history.search <- function(gitdir,pattern,branch = NULL, git_args = character(), git_binary = NULL){
+gitHistorySearch <- function(gitdir,pattern,branch = NULL, git_args = character(), git_binary = NULL){
   
   # git "commit" to the git repository in gitdir with message 
   

@@ -35,7 +35,7 @@ initialize_dependency_info <- function(source_info_arg){
   
   try({
     
-    #gitout <- git.init(project.path)
+    #gitout <- gitInit(project.path)
     
     #setwd(source_info_arg$analysis.dir)
     
@@ -50,44 +50,41 @@ initialize_dependency_info <- function(source_info_arg){
     
     if(no.repository){
       
-      #git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
-      #git.commit(project.path,"Intitialize git")
+      #gitAdd(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
+      #gitXcommit(project.path,"Intitialize git")
       
       git2r::init(project.path)
       repo <- git2r::repository(project.path)
-      git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))
+      gitIgnoreLibrary(project.id)
+      gitAdd(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))
       git2r::commit(repo,message ="Initialize git")
       
       print("Initialized git repo")
       
     }
-    
-    git.add(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
+    gitIgnoreLibrary(project.id)
+    gitAdd(project.path,file.path(source.file.info[["path"]],source.file.info[["file"]]))	
     
   })#try get
   }
   
-  
-  
-  
-  #  git.add(project.path,file.path(dependency.file))	
+  #  gitAdd(project.path,file.path(dependency.file))	
   
   # load the libraries and the dependent source functions
+
+  loadInstallLibraryFile(file.path(source_info_arg$support.dir,source_info_arg$support.library.file)) # Vestigial from adapr 1.0
   
+  runSourceDirectory(source_info_arg$support.dir)
+  runSourceDirectory(source_info_arg$source.support.dir)
   
-  load.install.library.file(file.path(source_info_arg$support.dir,source_info_arg$support.library.file))
-  load.source.directory(source_info_arg$support.dir)
-  load.source.directory(source_info_arg$source.support.dir)
-  
-  outlibraries <- id_new_libs(file.path(source_info_arg$support.dir,source_info_arg$support.library.file))
+  outlibraries <- idPackages(file.path(source_info_arg$support.dir,source_info_arg$support.library.file))
   
   if (length(outlibraries)>0) {print(paste("Libraries not automatically loaded",outlibraries))}
   
   utils::write.csv(as.data.frame(devtools::session_info()$packages),file.path(source_info_arg$source.support.dir,"package_info.csv"))
   
   support.files <- unlist(lapply(c(source_info_arg$support.dir,source_info_arg$source.support.dir)
-  										,list.files,recursive=TRUE,full.names=TRUE,include.dirs=FALSE))
-    
+  										,list.files,recursive=FALSE,full.names=TRUE,include.dirs=FALSE))
     
   #print(support.files)  
   
@@ -98,21 +95,21 @@ initialize_dependency_info <- function(source_info_arg){
   # add source files to dependency set was	
   
   for(file.name in support.files){
-    
-    if(source_info_arg$options$git){try({ git.add(project.path,file.name) })}
-    
+    print(file.name)
+   
     if(grepl("(\\.r)|(\\.R)$",file.name)){
-    
-      Read.cap(Create.file.info(dirname(file.name),basename(file.name),"Support file"),I,source_info_arg)
+      if(source_info_arg$options$git){try({ gitAdd(project.path,file.name) })}
+      
+      Read.cap(createFileInfo(dirname(file.name),basename(file.name),"Support file"),I,options()$adaprScriptInfo)
     }
   }		 
-  
-  file.name <- file.path(source_info_arg$support.dir,source_info_arg$support.library.file)
-  Read.cap(Create.file.info(dirname(file.name),basename(file.name),"Support file"),I,source_info_arg)
+ #No longer linking the dependency on the library file!  
+    
+#  file.name <- file.path(source_info_arg$support.dir,source_info_arg$support.library.file)
+#  Read.cap(createFileInfo(dirname(file.name),basename(file.name),"Support file"),I,options()$adaprScriptInfo)
   
   
   
   return(dependency.file)
   
 }	
-

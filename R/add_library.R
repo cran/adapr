@@ -1,18 +1,16 @@
-
 #' Read library file
 #' @param project.id project.id to read library file 
-#' @return Library information data
-#' @details uses read.csv
+#' @return Autoloaded library information data
+#' @details Not for direct use. Uses read.csv to read autoloaded libraries.
 #' @export
 #' @examples 
 #' \dontrun{
-#' read_library("adaprHome")
+#' readLibrary("adaprHome")
 #'} 
 #' 
-read_library <- function(project.id=get.project()){
-  source_info <- pull_source_info(project.id)    
+readLibrary <- function(project.id=getProject()){
+  source_info <- pullSourceInfo(project.id)    
   library.file <- file.path(source_info$project.path,project.directory.tree$support,"common_libs.csv")
-
   libout <- utils::read.csv(library.file,as.is=TRUE)
   
   libout <- libout[order(libout$Package),]
@@ -20,51 +18,44 @@ read_library <- function(project.id=get.project()){
   return(libout)
   
 }
-
-
-
 #' Add R package to a project
 #' @param project.id project.id to add R package to
 #' @param library.name R package name to add
 #' @param library.install Command to install library: NA for CRAN, bioC for bioconductor
 #' @param library.specific logical indicate whether package is for specific R script
 #' @return Library information data
-#' @details Installs and loads all packages
+#' @details Not for direct use. Installs and loads all packages
 #' @export
 #' @examples 
 #' \dontrun{
-#' add_package("adaprHome","ggplot2")
+#' addPackage("adaprHome","ggplot2")
 #'} 
 #' 
-add_package <- function(project.id=get.project(),library.name,library.install=NA,library.specific=FALSE){
-
-  source_info <- pull_source_info(project.id)    
+addPackage <- function(project.id=getProject(),library.name,library.install=NA,library.specific=FALSE){
+  source_info <- pullSourceInfo(project.id)    
   library.file <- file.path(source_info$project.path,project.directory.tree$support,"common_libs.csv")
   subgroup <- data.frame(Package=library.name,repos=library.install,
                        specific=as.logical(library.specific))  
-  library.info <- load.install.library.file(library.file,subgroup)
+  library.info <- loadInstallLibraryFile(library.file,subgroup)
   library.info <- utils::read.csv(library.file,as.is=TRUE)
   return(library.info)
 }
-
-
-
 #' Remove R package to a project
 #' @param project.id project.id to add R package to
 #' @param library.name R package name to add
 #' @return Library information data
-#' @details Remove line from file
+#' @details Not for direct use. Remove line from autoloading packages file.
 #' @export
 #' @examples 
 #' \dontrun{
-#' remove_package("adaprHome","ggplot2")
+#' removePackage("adaprHome","ggplot2")
 #'} 
 #' 
-remove_package <- function(project.id=get.project(),library.name){
-  libout <- read_library(project.id)
+removePackage <- function(project.id=getProject(),library.name){
+  libout <- readLibrary(project.id)
   
   libout <- subset(libout,libout$Package!=library.name)
-  source_info <- pull_source_info(project.id)    
+  source_info <- pullSourceInfo(project.id)    
   library.data.file <- file.path(source_info$project.path,project.directory.tree$support,"common_libs.csv")
   
   libout <- libout[order(libout$Package),]
@@ -73,22 +64,21 @@ remove_package <- function(project.id=get.project(),library.name){
   
   return(libout)
 }
-
 #' Installs all packages
 #' @param project.id project.id to install packages for R package to
 #' @return Library information data
-#' @details Installs packages 
+#' @details Not for direct use. Installs autoloaded packages.
 #' @export
 #' @examples 
 #' \dontrun{
-#' install_project_packages("adaprHome")
+#' installProjectPackages("adaprHome")
 #'} 
-install_project_packages <- function(project.id=get.project()){
-  source_info <- pull_source_info(project.id)    
+installProjectPackages <- function(project.id=getProject()){
+  source_info <- pullSourceInfo(project.id)    
   library.file <- file.path(source_info$project.path,project.directory.tree$support,"common_libs.csv")
-  load.install.library.file(library.data.file= library.file,verbose=TRUE,install.all=TRUE)
+  loadInstallLibraryFile(library.data.file= library.file,verbose=TRUE,install.all=TRUE)
   
-  return(read_library(project.id))
+  return(readLibrary(project.id))
 }
   
   

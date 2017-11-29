@@ -5,12 +5,12 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' projInfo <- get.project.info(pull_source_info("adaprHome")$dependency.dir)
-#' trees <- Harvest.trees(pull_source_info("adaprHome")$dependency.dir)
-#' file.info <-Condense.file.info(trees)
-#' ID.sync(file.info,projInfo$graph) 
+#' projInfo <- getProjectInfo(pullSourceInfo("adaprHome")$dependency.dir)
+#' trees <- readDependency(pullSourceInfo("adaprHome")$dependency.dir)
+#' file.info <-condenseFileInfo(trees)
+#' idSync(file.info,projInfo$graph) 
 #'} 
-ID.sync <- function(file.info,dag.to.sync){
+idSync <- function(file.info,dag.to.sync){
   
   #
   # 
@@ -28,7 +28,7 @@ ID.sync <- function(file.info,dag.to.sync){
   
   if(nrow(repair.sync.file.info)>0){
   
-  	repair.sync.file.info$run.order <- 1:nrow(repair.sync.file.info)
+  	repair.sync.file.info$run.order <- seq(1,nrow(repair.sync.file.info))
   }else{
   	
   	repair.sync.file.info$run.order <- integer(0)
@@ -37,4 +37,4 @@ ID.sync <- function(file.info,dag.to.sync){
   
   
   
-} #END: ID.sync
+} #END: idSync

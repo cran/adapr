@@ -8,12 +8,10 @@
 #' @examples 
 #'\dontrun{
 #' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
-#' Get.file.info(source_info,file0="read_data.R")
+#' getFileInfo(source_info,file0="read_data.R")
 #'} 
 #' 
-Get.file.info <- function(source_info,data="",file0="",path.grep=""){
-  
-  
+getFileInfo <- function(source_info,data="",file0="",path.grep=""){
   
   if(data!=""){
     file.row <- subset(source_info$all.files,(source_info$all.files$path==file.path(source_info$data.dir,data))&(source_info$all.files$file==file0))
@@ -29,7 +27,7 @@ Get.file.info <- function(source_info,data="",file0="",path.grep=""){
   
   if(nrow(file.row)>1){stop("Attempt to retreive non-unique file information")}
   
-  file.info.out <- Create.file.info(file.row$path,file.row$file,file.row$description)
+  file.info.out <- createFileInfo(file.row$path,file.row$file,file.row$description)
   
   return(file.info.out)
   

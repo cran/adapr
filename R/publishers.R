@@ -5,15 +5,14 @@
 #' @export
 #' @examples 
 #' \dontrun{
-#' get.pubresults("adaprHome")
+#' getPubResults("adaprHome")
 #'} 
 #' 
-
-get.pubresults <- function(project.id=get.project()){
+getPubResults <- function(project.id=getProject()){
   
   # Retrieves or creates publication table from project.id
   
-  source_info <- pull_source_info(project.id)
+  source_info <- pullSourceInfo(project.id)
   publication.file <- file.path(source_info$project.path,project.directory.tree$support,"files_to_publish.csv")
   if(file.exists(publication.file)){
     publication.table <- utils::read.csv(publication.file,as.is=TRUE)
@@ -25,7 +24,6 @@ get.pubresults <- function(project.id=get.project()){
   return(publication.table)
   
 }
-
 #' Read in results to publish & Copies results to the project's publication directory
 #' @param project.id Project to publish
 #' @return dataframe of files to publish
@@ -33,19 +31,18 @@ get.pubresults <- function(project.id=get.project()){
 #' @export
 #' @examples 
 #' \dontrun{
-#' send.pubresults("adaprHome")
+#' publishResults("adaprHome")
 #'} 
 #' 
-send.pubresults <- function(project.id=get.project()){
-
-  publication.table <- get.pubresults(project.id)
+publishResults <- function(project.id=getProject()){
+  publication.table <- getPubResults(project.id)
   
-  pubpath <- get.project.publish.path(project.id)
+  pubpath <- getProjectPublishPath(project.id)
   
   if(nrow(publication.table)>0){
     
     publication.table <- publication.table[order(basename(publication.table$Path)),]  
-    file.copy(file.path(get.project.path(project.id),publication.table$Path),pubpath,overwrite=TRUE)
+    file.copy(file.path(getProjectPath(project.id),publication.table$Path),pubpath,overwrite=TRUE)
     pubout <- paste("Published",nrow(publication.table),project.id, "files",Sys.time(),"to",pubpath)
     
   }else{
@@ -55,8 +52,6 @@ send.pubresults <- function(project.id=get.project()){
   return(pubout)
   
 }
-
-
 #' Browses publication table for editing
 #' @param project.id Project to publish
 #' @return dataframe of files to publish
@@ -64,13 +59,13 @@ send.pubresults <- function(project.id=get.project()){
 #' @export
 #' @examples 
 #' \dontrun{
-#' show.pubresults("adaprHome")
+#' browsePubFiles("adaprHome")
 #'} 
 #' 
 #' 
-show.pubresults <- function(project.id=get.project()){
+browsePubFiles <- function(project.id=getProject()){
   
-  source_info <- pull_source_info(project.id)
+  source_info <- pullSourceInfo(project.id)
   publication.file <- file.path(source_info$project.path,project.directory.tree$support,"files_to_publish.csv")
   if(file.exists(publication.file)){
   
@@ -85,5 +80,3 @@ show.pubresults <- function(project.id=get.project()){
   
   
 }
-
-

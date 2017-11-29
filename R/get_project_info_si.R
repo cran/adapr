@@ -5,20 +5,20 @@
 #'@examples 
 #'\dontrun{
 #' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
-#' get.project.info.si(source_info)
+#' getProjectInfoSI(source_info)
 #'} 
 #' 
-get.project.info.si <- function(source_info){
+getProjectInfoSI <- function(source_info){
   
   # get project object
   
   dependency.dir <- source_info$dependency.dir
   
-  trees <- Harvest.trees(dependency.dir)
+  trees <- readDependency(dependency.dir)
   
-  g.all <- Make.summary.graph(dependency.dir=NULL,dependency.object=trees,plot.graph=FALSE)
+  g.all <- makeSummaryGraph(dependency.dir=NULL,dependency.object=trees,plot.graph=FALSE)
   
-  file.info.object <- Condense.file.info(trees)
+  file.info.object <- condenseFileInfo(trees)
   
   return(list("tree"=trees,"graph"=g.all,"all.files"=file.info.object))
   

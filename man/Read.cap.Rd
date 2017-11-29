@@ -2,7 +2,7 @@
 % Please edit documentation in R/Read_cap.R
 \name{Read.cap}
 \alias{Read.cap}
-\title{Read data and capture the file information within dependency object}
+\title{Lower level function that reads data and capture the file information within dependency object}
 \usage{
 Read.cap(file.info, read.fcn, source_info, ...)
 }
@@ -19,17 +19,16 @@ Read.cap(file.info, read.fcn, source_info, ...)
 object read from files
 }
 \description{
-Read data and capture the file information within dependency object
+Lower level function that reads data and capture the file information within dependency object
 }
 \examples{
 \dontrun{
 source_info <- create_source_file_dir("adaprHome","tree_controller.R")
 testfile <- file.path(source_info$data.dir,"test.csv")
 write.csv(cars,testfile)
-fileinfo <- Create.file.info(dirname(testfile),basename(testfile),"cars dataset")
+fileinfo <- createFileInfo(dirname(testfile),basename(testfile),"cars dataset")
 Read.cap(fileinfo,read.csv,source_info)
 file.remove(file.path(source_info$data.dir,"test.csv"))
 
 } 
 }
-

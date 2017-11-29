@@ -7,20 +7,22 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#'  Check.file.mtime.source(pull_source_info("adaprHome")$dependency.dir)
+#'  checkFileMtimeSource(pullSourceInfo("adaprHome")$dependency.dir)
 #'} 
 #' 
-Check.file.mtime.source <- function(dependency.dir=NULL,dependency.object=NULL){
+checkFileMtimeSource <- function(dependency.dir=NULL,dependency.object=NULL){
   
   #equire(plyr)
   
   if(is.null(dependency.object)){
     
-    trees <- Harvest.trees(dependency.dir)
+    trees <- readDependency(dependency.dir)
     trees <- subset(trees,!is.na(trees$dependency))
   }else{trees <- dependency.object}
  
   source.df <- subset(trees,!duplicated(trees$source.hash))
+  
+  missingIsTrue <- function(x){return(ifelse(is.na(x),TRUE,x))}
   
   source.mtime.check <- plyr::ddply(source.df,c("source.file","source.file.path"),function(x){
     
@@ -29,7 +31,9 @@ Check.file.mtime.source <- function(dependency.dir=NULL,dependency.object=NULL){
       current.mtime <- file.info(file=file.path(x$source.file.path[1],x$source.file[1]))$mtime
     })
     
-    mtime.fail <- current.mtime  != x$source.mod.time   
+    mtime.fail <- missingIsTrue(as.character(current.mtime)  != as.character(x$source.mod.time   ))
+    
+   # mtime.fail <- ifelse(is.na(mtime.fail),TRUE,mtime.fail)
     
     return(data.frame( mtime.fail))
   })
@@ -47,7 +51,10 @@ Check.file.mtime.source <- function(dependency.dir=NULL,dependency.object=NULL){
      	 current.mtime <- file.info(file=file.path(x$target.path[1],x$target.file[1]))$mtime
    		 })
     
-		x$mtime.fail <- current.mtime  != x$target.mod.time
+    # Only gets 1 second level time resoluion, some OS may achieve more resolution	
+    	
+		x$mtime.fail <- missingIsTrue(as.character(current.mtime)  != as.character(x$target.mod.time))
+		
 		return(x)
     
      })

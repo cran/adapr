@@ -3,11 +3,13 @@
 #' @return file path for swap directory
 #' @export
 #' @details Do not use. Deprecated.
-get.project.swap.directory <-function(project_name=NULL){
+getProjectSwapPath <-function(project_name=NULL){
   
   warning("get.projct.swap.directory is deprecated.")
   
-  all.projects <- utils::read.csv(file.path(path.expand.2("~"),"ProjectPaths","projectid_2_directory.csv"),as.is=TRUE)
+#  all.projects <- utils::read.csv(file.path(path.expand.2("~"),"ProjectPaths","projectid_2_directory.csv"),as.is=TRUE)
+  
+  all.projects <- get_orchard()
   
   if(is.null(project_name)){return(all.projects)}
   

@@ -4,18 +4,16 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' trees <- Harvest.trees(pull_source_info("adaprHome")$dependency.dir)
-#' dag<-Make.dependency.graph.obj(trees)
+#' trees <- readDependency(pullSourceInfo("adaprHome")$dependency.dir)
+#' dag<-makeDependencyGraphObj(trees)
 #'} 
-
-
-Make.dependency.graph.obj <- function(dependency.out){
+makeDependencyGraphObj <- function(dependency.out){
   
   # make dependency graph using dependency.out object
   # return dependency graph
   
   
-  file.info <- Condense.file.info(dependency.out)
+  file.info <- condenseFileInfo(dependency.out)
   
   
   dependencies <- dependency.out

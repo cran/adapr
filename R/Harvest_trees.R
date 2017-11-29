@@ -5,11 +5,11 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' Harvest.trees(pull_source_info("adaprHome")$dependency.dir) 
+#' readDependency(pullSourceInfo("adaprHome")$dependency.dir) 
 #'} 
 #' 
 #' 
-Harvest.trees <- function(dependency.dir){
+readDependency <- function(dependency.dir){
   
   #collects all trees in dependency.dir
   
@@ -25,7 +25,7 @@ Harvest.trees <- function(dependency.dir){
     
   project.id <-  list.deps[[1]]$project.id[1] 
   
-  new.path <- get.project.path(project.id)
+  new.path <- getProjectPath(project.id)
   
   if(is.na(list.deps[[1]]$project.path[1])){
     

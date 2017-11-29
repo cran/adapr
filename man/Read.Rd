@@ -23,14 +23,19 @@ object read from file
 Read data and capture the file information within dependency object
 }
 \details{
-Simpler command than Read.cap, automatically generates file info. Assumes file is in project "Data" directory
+Main fuction for reading file data in projects. 
+Wrapper function for Read.cap, automatically generates file information. 
+Assumes file is in project "Data" directory.
+Use this in the body of the program.
+Guesses which function to use to read the file, but user can specify any function that given a file name returns
+an R object.
 }
 \examples{
 \dontrun{
 source_info <- create_source_file_dir("adaprHome","tree_controller.R")
 write.csv(cars,file.path(source_info$data.dir,"test.csv"))
-Read("test.csv","cars dataframe")
+cardata <- Read("test.csv","cars dataframe",as.is=TRUE)
 file.remove(file.path(source_info$data.dir,"test.csv"))
 }  
-}
 
+}

@@ -1,15 +1,15 @@
-#' Configure user.name and email for git. Requires git installation.
+#' Configure user.name and email for git. 
 #' @param user.name Chris Someone
 #' @param user.email someone[at]somewhere.com
 #' @return output from git
 #' @export
 #' @examples 
 #'\dontrun{
-#' # Requires Git installation
-#'  git.configure("jonG","gelfond@somewhere.com")
+#' # Uses git2r package
+#'  gitConfigure("jonG","gelfond@somewhere.com")
 #'} 
 #' 
-git.configure <- function(user.name,user.email){
+gitConfigure <- function(user.name,user.email){
   
   
   git2r::config(global=TRUE,user.name,user.email)

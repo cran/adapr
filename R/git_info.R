@@ -8,14 +8,13 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' si <- pull_source_info("adaprHome")
+#' si <- pullSourceInfo("adaprHome")
 #' file0 <- file.path(si$project.path,project.directory.tree$analysis,"read_data.R")
-#' git.info(si$project.path,file0) 
+#' gitInfo(si$project.path,file0) 
 #'} 
 #' 
 #' 
-
-git.info <- function(gitdir,filename,branch = NULL, git_args = character(), git_binary = NULL){
+gitInfo <- function(gitdir,filename,branch = NULL, git_args = character(), git_binary = NULL){
   
   # extract the git information related to a filename in the git repository in gitdir
   

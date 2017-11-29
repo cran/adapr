@@ -1,22 +1,22 @@
 #' Checks the consistency of the dependency directory with the files within the file system
 #' @param dependency.dir Directory with dependency information files
-#' @param dependency.object data frame with dependency information
-#' @details Only needs one or the other argument
+#' @param dependency.object Data frame with dependency information
+#' @details Not for direct use. Only needs one or the other argument.
 #' @return list of information about file hase mismatches
 #' @export
 #' @examples 
 #' \dontrun{
-#' Check.file.hash(pull_source_info("adaprHome")$dependency.dir)
+#' checkFileHash(pullSourceInfo("adaprHome")$dependency.dir)
 #' } 
 #' 
 #' 
-Check.file.hash <- function(dependency.dir=NULL,dependency.object=NULL){
+checkFileHash <- function(dependency.dir=NULL,dependency.object=NULL){
   
   #equire(plyr)
   
   if(is.null(dependency.object)){
     
-    trees <- Harvest.trees(dependency.dir)
+    trees <- readDependency(dependency.dir)
     trees <- subset(trees,!is.na(dependency))
   }else{trees <- dependency.object}
   

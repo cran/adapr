@@ -7,19 +7,19 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' projInfo <- get.project.info(pull_source_info("adaprHome")$dependency.dir)
+#' projInfo <- getProjectInfo(pullSourceInfo("adaprHome")$dependency.dir)
 #' plot(projInfo$graph) 
 #'} 
 #' 
-get.project.info <- function(dependency.dir){
+getProjectInfo <- function(dependency.dir){
   
   # get project object
   
-  trees <- Harvest.trees(dependency.dir)
+  trees <- readDependency(dependency.dir)
   
-  g.all <- Make.summary.graph(dependency.dir=NULL,dependency.object=trees,plot.graph=FALSE)
+  g.all <- makeSummaryGraph(dependency.dir=NULL,dependency.object=trees,plot.graph=FALSE)
   
-  file.info.object <- Condense.file.info(trees)
+  file.info.object <- condenseFileInfo(trees)
   
   return(list("tree"=trees,"graph"=g.all,"all.files"=file.info.object))
   

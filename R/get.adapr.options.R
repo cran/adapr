@@ -4,12 +4,11 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' opt <- get_adapr_options()
+#' opt <- getAdaprOptions()
 #' print(opt)
 #'} 
 #' 
-
-get_adapr_options <- function(setoptions=FALSE){
+getAdaprOptions <- function(setoptions=FALSE){
     # 
   option.file <- "adapr_options.csv"
   
@@ -20,7 +19,6 @@ get_adapr_options <- function(setoptions=FALSE){
     dir.create(dirname(options.site),recursive=TRUE)
     
     options.site0 <- system.file(option.file,package='adapr')
-
     file.copy(options.site0,options.site)    
  
   }
@@ -48,17 +46,16 @@ get_adapr_options <- function(setoptions=FALSE){
 #' @export
 #' @examples 
 #'\dontrun{
-#' opt <- get_adapr_options()
-#' set_adapr_options("project.path",opt$project.path)
-#' opt2 <- get_adapr_options()
+#' opt <- getAdaprOptions()
+#' setAdaprOptions("project.path",opt$project.path)
+#' opt2 <- getAdaprOptions()
 #' identical(opt,opt2)
 #'} 
 #' 
-set_adapr_options <- function(optionname="",optionvalue=""){
+setAdaprOptions <- function(optionname="",optionvalue=""){
   # 
   
-  options <- get_adapr_options(FALSE)
-
+  options <- getAdaprOptions(FALSE)
   if((as.numeric(version$major) +as.numeric(version$minor)/10)>=3.2){
   
   if(optionname=="project.path"){
@@ -81,15 +78,45 @@ set_adapr_options <- function(optionname="",optionvalue=""){
   
   }#check dir exists if r version gt or = 3.2
   
+  if(optionname=="git"){
+    
+    
+    if(!(optionvalue %in% c("TRUE","FALSE"))){
+      
+      stop("Option git needs to be \"TRUE\" or \"FALSE\"")
+    }
+    
+    # Check git configuration when turning on git 
+    
+    testActive <- length(getAdaprOptions()$git)==0
+    
+    if(!testActive){testActive <- getAdaprOptions()$git=="FALSE"}
+ 
+    if(testActive&(optionvalue=="TRUE")){
+      
+      print("Use gitCongifure to set git user information")
+      print(gitConfigureTest())
+      
+      email <- ""
+      
+      try({
+        email <-  git2r::config()[["global"]]$user.email
+      })
+      
+      
+      if (!grepl("@",email)) {print("Git is not configured. Run: gitConfigure(user.name, user.email)")}
+      
+      
+    } #END: Check git configuration when turning on git  
+  } # check git options are TRUE or FALSE
   
+
   options[[optionname]] <- optionvalue
   
   dfout <- NULL
   
   for(i in 1:length(options)){
-    
     dfout <- rbind(dfout,data.frame(option=names(options[i]),value=options[[i]]))
-    
   }
   
   option.file <- "adapr_options.csv"
@@ -100,86 +127,3 @@ set_adapr_options <- function(optionname="",optionvalue=""){
   
   return(options)
 }
-
-
-
-
-#' Checks or changes the specified adapr project in R option "adaprProject"
-#' @param project.id characters specifying project.id of working project
-#' @param quickTest logical whether to check if project exists
-#' @return value is specified project or default project
-#' @details Default is adaprHome. Returns default if project does not exist.
-#' @export
-#'@examples 
-#'\dontrun{
-#'  set.project("adaprHome")
-#'} 
-#' 
-set.project <- function(project.id="",quickTest=FALSE){
-  
-  defaultProject <- "adaprHome"
-  
-  test <- is.null(options()$adaprProject)
-  
-  if(test){
-    if(project.id==""){
-      options(adaprProject = defaultProject)
-      return(defaultProject)
-    }
-  }
-  
-  
-  if(quickTest){
-    projects <- get_orchard()$project.id
-  }else{
-    projects <- project.id
-  }
-  
-  if(project.id!=""){
-    
-    if(project.id %in% projects){
-      options(adaprProject = project.id)
-    }else{
-      warning("adapr::set.project project.id does not exist")
-      project.id <- defaultProject
-      options(adaprProject = project.id)
-    }
-    
-  }else{
-    
-    project.id <- options()$adaprProject
-  }
-  
-  return(project.id)
-  
-}
-
-
-#' Returns the  adapr project in R option "adaprProject"
-#' @return Value is specified project or default project
-#' @details Default is adaprHome. Returns default if project does not exist.
-#' @export
-#'@examples 
-#' \dontrun{
-#'  get.project()
-#'} 
-#' 
-get.project <- function(){
-  
-  defaultProject <- "adaprHome"
-  
-  test <- is.null(options()$adaprProject)
-  
-  if(test){
-      options(adaprProject = defaultProject)
-      return(defaultProject)
-  }else{
-    
-    return(options()$adaprProject)
-  }
-  
-}
-
-
-
-

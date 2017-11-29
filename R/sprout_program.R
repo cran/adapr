@@ -1,4 +1,4 @@
-#' Generates the shell of a code that is project specific
+#' Lower level function that generates the shell of a code that is project specific
 #' @param project.id Name of project
 #' @param source.file.name Filename to create
 #' @param description What program does
@@ -6,10 +6,9 @@
 #' @param capture.load.command Command for loading inference tree library
 #' @param controller logical to insert lines that operate on analysis tree
 #' @return Logical indicating success or not
-#' @details Will not overwrite existing program. Not for direct use. See make.program().
-#' @export
+#' @details Will not overwrite existing program. Not for direct use. See makeScript().
 #' 
-sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed=2011,capture.load.command="library(adapr)",controller=FALSE){
+sproutProgram <- function(project.id=NA,source.file.name=NA,description="",seed=2011,capture.load.command="library(\"adapr\")",controller=FALSE){
   
   
   if(controller){
@@ -25,29 +24,26 @@ sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed
   
   initialize.lines <- paste0("source_info <- create_source_file_dir(","source.description=",paste0("\"",description,"\")"))
   
-  body.lines <- c(rep("\n",1),"# Program body here",rep("\n",2),"# End Program Body",rep("\n",1))
+  body.lines <- c(rep("\n",1),"#Library statements here",rep("\n",2),"# Program body here",rep("\n",2),"# End Program Body",rep("\n",1))
   
   final.line <- "dependency.out <- finalize_dependency()"
   
-
   
-  controller.lines <- c( "#synctest.project()     #Tests project synchronization ",
-                     "#sync.project()  # This runs all programs needed to synchronize",
-                       "#report.project()              #This summarizes project in html")
+  controller.lines <- c( "#syncTestProject()     #Tests project synchronization ",
+                     "#syncProject()  # This runs all programs needed to synchronize",
+                       "#reportProject()              #This summarizes project in html")
   
   if(controller){final.line <- controller.lines}
   
   strings.to.write <- c(rep("\n",1),start.lines.generic,rep("\n",1),start.lines.specific,initialize.lines,body.lines,final.line)
-
   #print(strings.to.write)
   
-  target.file <- file.path(get.project.path(project.id),project.directory.tree$analysis,source.file.name)
+  target.file <- file.path(getProjectPath(project.id),project.directory.tree$analysis,source.file.name)
   
   if(!file.exists(target.file)){
     
-    dir.create(file.path(get.project.path(project.id),project.directory.tree$analysis),showWarnings=FALSE)
+    dir.create(file.path(getProjectPath(project.id),project.directory.tree$analysis),showWarnings=FALSE)
     
-
     
     write(strings.to.write,target.file)
     return(TRUE)
@@ -63,31 +59,51 @@ sprout.program <- function(project.id=NA,source.file.name=NA,description="",seed
 
 #' Generates the shell of a code that is project specific
 #' @param r is source file name or Filename to create
-#' @param description What program does
-#' @param project.id Name of project
+#' @param description Character string describing what program does
+#' @param project.id Character string for name of project
 #' @param seed Random start seed
-#' @param run Execute r script?
+#' @param run Logical for execution of r script
+#' @param openTF Logcial for opening R script
 #' @return Logical indicating failure or not
-#' @details Will not overwrite existing program. Executes program stub. Mostly wrapper for sprout.program.
+#' @details Will not overwrite existing program. Executes program and opens stub program. Mostly wrapper for sproutProgram.
 #' @export
 #' @examples 
 #'\dontrun{
-#'  make.program("read_data.R",description="reads data","adaprHome")
+#'  makeScript("read_data.R",description="reads data","adaprHome")
 #'} 
-make.program <- function(r="",description="",project.id=get.project(),seed=2011,run=TRUE){
+makeScript <- function(r="",description="",project.id=getProject(),seed=2011,run=TRUE,openTF=TRUE){
+  
+  
+  r <- gsub(" ","_",r)
   
   if(!(toupper(gsub(".*\\.","",r))=="R")){
     
-    print("Error make.program: Scripname doesn't end in .R")
+    print("Error makeScript: Script name doesn't end in .R")
     
     return(FALSE)
     
   }
   
-  out <- sprout.program(project.id,source.file.name=r,description=description,seed)
+  out <- sproutProgram(project.id,source.file.name=r,description=description,seed)
   
-  if(run){run.program(r,project.id)}
-
+  if(run){
+    runScript(r,project.id)
+    
+  }
+  
+  if(openTF){
+ 
+    openScript(r,project.id)
+    
+  }
+  
   return(out)
 }
+
+
+
+
+
+
+
 

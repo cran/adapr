@@ -3,13 +3,12 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' # Requires RStudio
-#'default.adapr.setup()
+#' # Requires pandoc location or RStudio
+#' default.adapr.setup()
 #'
 #'} 
 #'
-
-default.adapr.setup <- function(){
+defaultAdaprSetup <- function(){
   
   # check launch in Rstudio
   
@@ -17,15 +16,28 @@ default.adapr.setup <- function(){
   step <- 1
   #equire(devtools)
 
-  
+
+
   print("Will make project directories in computer Document directory and create adaprHome project.")
   
+  print("Easier setup in RStudio.")
+  
+  print("For custom setup in non-default directories, use R Profile and adaprHomeDir R options: See adaprHomeDir().")
+  
+  yesno <- readline("Do want to setup in default directories? y/n")
+  
+  defaultSetUp <- substring(yesno,1,1) %in% c("y","Y")
+  
+  if(!defaultSetUp){
+    print(paste("AdaprHomeDir is",adaprHomeDir()))
+    yesno <- readline("Did you already set up adaprHomeDir option in R profile? y/n")
+    defaultSetUp2 <- substring(yesno,1,1) %in% c("y","Y")
+    if(!defaultSetUp2){stop("Set option adaprHomeDir in R Profile first.")}
+    }
   
   print(paste("Step",step,"of",total,"Identifying RSTUDIO step"))
   step <- step + 1
-
    sysEnvironment <- Sys.getenv()
-
   rstudio <- ""
   try({
   	rstudio <- sysEnvironment[["RSTUDIO"]]
@@ -33,32 +45,68 @@ default.adapr.setup <- function(){
   
   rstudio <- rstudio=="1"
   
-  if(!rstudio){stop("Please start up first time in RStudio to identify pandoc resources.")}
-    
-  # check pandoc path
-  
   print(paste("Step",step,"of",total,"Check pandoc path"))
   step <- step + 1
   
+  if(!rstudio){
+    #print("Please start up first time in RStudio to identify pandoc resources.")
+    print("RStudio not used to identify path to pandoc")
+    }
+    
+  # check pandoc path
+  
+ 
   PATHer <- sysEnvironment[["PATH"]]
   
-  oldoptions <- get_adapr_options()
+  oldoptions <- getAdaprOptions()
   
   oldpath <- oldoptions$PATH
-  
-  pandocpath <- sysEnvironment[["RSTUDIO_PANDOC"]]
-  
+  if(!rstudio){
+    
+    yesno <- readline("Do you know the path to pandoc resource? y/n")
+    
+    foundPandoc <- substring(yesno,1,1) %in% c("y","Y")
+    if(foundPandoc) {
+      pandocpath <- readline("Please enter system path to pandoc resource.")
+      }else{
+        stop("Need pandoc resource path. Setup in RStudio identifies pandoc path.")
+      }
+  }else{
+    pandocpath <- sysEnvironment[["RSTUDIO_PANDOC"]]
+  }
   if(length(oldpath)==0){oldpath <- PATHer}
     
   if(!grepl(pandocpath,oldpath,fixed=TRUE)){oldpath <- paste0(oldpath,.Platform$path.sep,pandocpath)}
   
-  set_adapr_options("PATH",oldpath)
+  setAdaprOptions("PATH",oldpath)
+  
+
+  
+  orchards <- get_orchard()
+  
+  libdirectory <- readline("R library location? (leave blank if default)")
+  
+  libdirectory <- ifelse(libdirectory=="",.libPaths()[1],libdirectory)
+  
+  setAdaprOptions("library",libdirectory)
+
+  
+  
+    
+ 
+ 
+  yesno <- readline("Do you want to use adapr beta features (adapr installed from github) y/n?")
+  
+  adaprBeta <- substring(yesno,1,1) %in% c("y","Y")
+  
+  setAdaprOptions("adaprBeta",as.character(adaprBeta))
+  
+  if(!checkVersion("adapr",lib=libdirectory)){adaprInstall(libdirectory)}
   
   # Check git
   
   print(paste("Step",step,"of",total,"Check git version control"))
   step <- step + 1
-
   git_binary_path <- "Git does not"
   
   try(git_binary_path <- git_path(NULL))
@@ -67,51 +115,49 @@ default.adapr.setup <- function(){
   
   wantgit <- substring(yesno,1,1) %in% c("y","Y")
   
-  set_adapr_options("git",ifelse(wantgit,"TRUE","FALSE"))
+  setAdaprOptions("git",ifelse(wantgit,"TRUE","FALSE"))
   
   if(wantgit==FALSE){
     username <- readline("What is your username? (This is optional)")
-    set_adapr_options("username",ifelse(username=="","Anonymous",username))
+    setAdaprOptions("username",ifelse(username=="","Anonymous",username))
   }
   
   if(wantgit & grepl("Git does not",git_binary_path)){ 
-  	
-
-  	  warning("Git is not installed. Some version control features limited.
-  	          Please download and configure (git-scm.com). Try GIT client GUI!!")
-  	
-  	}
+    
+    warning("Git is not installed. Some version control features limited.
+            Please download and configure (git-scm.com). Try GIT client GUI!!")
+    
+  }
   # Check git config  
   
   if(wantgit){
-  
-  email <- ""
-  
-  try({
-    email <- git2r::config()[["global"]]$user.email
-  })
-  
-  if(!grepl("@",email)){
     
-    print("Please enter Git User name")
-    
-    gituser <- readline("Please ender your preferred Git user name:    ")
-    gitemail <- readline("Please ender your preferred Git email <somebody@somewhere.com>:   ")
-    
-    git.configure(gituser,gitemail)
+    email <- ""
     
     try({
-      email <-  git2r::config()[["global"]]$user.email
+      email <- git2r::config()[["global"]]$user.email
     })
     
+    if(!grepl("@",email)){
+      
+      print("Please enter Git User name")
+      
+      gituser <- readline("Please ender your preferred Git user name:    ")
+      gitemail <- readline("Please ender your preferred Git email <somebody@somewhere.com>:   ")
+      
+      gitConfigure(gituser,gitemail)
+      
+      try({
+        email <-  git2r::config()[["global"]]$user.email
+      })
+      
+      
+      if (!grepl("@",email)) {return("Git is not configured. Run: gitConfigure(user.name, user.email)")}
+      
+    }else{print("Git configured")}
     
-    if (!grepl("@",email)) {return("Git is not configured. Run: git.configure(user.name, user.email)")}
-    
-  }else{print("Git configured")}
-  
   }# configure git
   
-  orchards <- get_orchard()
   
   print(paste("Step",step,"of",total,"Creating 1st project adaprHome"))
   step <- step + 1
@@ -145,11 +191,11 @@ default.adapr.setup <- function(){
     print(paste("Step",step,"of",total,"Set default project paths"))
     step <- step + 1
     
-    set_adapr_options("project.path",project.path.start)
+    setAdaprOptions("project.path",project.path.start)
     
-    set_adapr_options("publish.path", publish.path.start)
+    setAdaprOptions("publish.path", publish.path.start)
     
-    first.project(project.path.start, publish.path.start)
+    firstProject(project.path.start, publish.path.start)
     
     
   }else{
@@ -166,4 +212,52 @@ default.adapr.setup <- function(){
   
   
 }# END default set.up
+#' Create adaprTest example project
+#' @details To be run after default adapr set up.
+#' @param localLibraryTF Logical for local library or not
+#' @param overwrite Logical indicating whether to overwrite existing project
+#' @export
+#' @examples 
+#'\dontrun{
+#' # 
+#'  loadAdaprTest()
+#'
+#'} 
+#'
+loadAdaprTest <- function(localLibraryTF=FALSE,overwrite=TRUE){
+  
+  # Loads an example project
+  
+  localLibraryTF <- ifelse(localLibraryTF=="packrat","packrat",as.logical(localLibraryTF))
+  
+  if(overwrite) {removeProject("adaprTest")}
+  #setwd(file.path(getAdaprOptions()$project.path,"adaprTest"))
+  #testFiles <- list.files(file.path(getAdaprOptions()$project.path,"adaprTest"),recursive=TRUE,all.files=FALSE)
+  #zip("adaprTest.zip",files=testFiles)
+  
+  
+  if("adaprTest" %in% get_orchard()$project.id){
+    
+    
+    print("adaprTest already loaded try removeProject(\"adaprTest\")")
+    
+    return(1)
+  }else{
+    
+    projectLocation <- system.file("adaprTest.zip", package = "adapr")
+    
+    newLocation <- getAdaprOptions()$project.path
+    
+    newDir <- file.path(newLocation,"adaprTest")
 
+        dir.create(newDir)
+    
+    utils::unzip(zipfile = projectLocation, exdir = newDir, 
+                 overwrite = TRUE)
+    relocateProject("adaprTest",project.libraryTF = localLibraryTF)
+    
+    setProject("adaprTest")
+    
+  }
+  return(0)   
+}# END: loadAdaprTest

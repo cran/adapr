@@ -9,17 +9,16 @@
 #' @export
 #' @examples 
 #'\dontrun{
-#' si <- pull_source_info("adaprHome")
+#' si <- pullSourceInfo("adaprHome")
 #' file0 <- file.path(si$project.path,project.directory.tree$analysis,"read_data.R")
-#' git.add(si$project.path,file0) 
+#' gitAdd(si$project.path,file0) 
 #'} 
 #' 
-git.add <- function(gitdir,filename,branch = NULL, git_args = character(), git_binary = NULL){
+gitAdd <- function(gitdir,filename,branch = NULL, git_args = character(), git_binary = NULL){
   
   # "add" filename in the git repository in gitdir
   
   repo <- git2r::repository(gitdir)
-
   git2r::add(repo,filename)    
   
 #  git_binary_path <- git_path(git_binary)

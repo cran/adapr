@@ -3,16 +3,22 @@
 #' @param description description of data file
 #' @param read.fcn function for reading file
 #' @param ... arguments to read function
-#' @details Simpler command than Read.cap, automatically generates file info. Assumes file is in project "Data" directory
+#' @details Main fuction for reading file data in projects. 
+#' Wrapper function for Read.cap, automatically generates file information. 
+#' Assumes file is in project "Data" directory.
+#' Use this in the body of the program.
+#' Guesses which function to use to read the file, but user can specify any function that given a file name returns
+#' an R object.
 #' @return object read from file
 #' @export
 #'@examples 
 #'\dontrun{
 #' source_info <- create_source_file_dir("adaprHome","tree_controller.R")
 #' write.csv(cars,file.path(source_info$data.dir,"test.csv"))
-#' Read("test.csv","cars dataframe")
+#' cardata <- Read("test.csv","cars dataframe",as.is=TRUE)
 #' file.remove(file.path(source_info$data.dir,"test.csv"))
 #'}  
+#'
 Read <- function(file.name="data.csv",description="Data file",read.fcn=guess.read.fcn(file.name),...){
   
   # lightweight read.cap take small number of args
@@ -29,6 +35,7 @@ Read <- function(file.name="data.csv",description="Data file",read.fcn=guess.rea
   }
   
   
+  
   if(dirname(file.name)!="."){
     inpath <- file.path(source_info$data.dir,dirname(file.name))
     file.name <- basename(file.name)
@@ -36,17 +43,13 @@ Read <- function(file.name="data.csv",description="Data file",read.fcn=guess.rea
   
   if(!file.exists(file.path(inpath,file.name))){stop(paste("Read error: file does not exists:",file.path(inpath,file.name)))}
   
-  file.info <- Create.file.info(inpath,basename(file.name),description)
+  file.info <- createFileInfo(inpath,basename(file.name),description)
   
-  read.obj <- Read.cap(file.info,read.fcn,source_info,...)
+  read.obj <- Read.cap(file.info,read.fcn,options()$adaprScriptInfo,...)
   
   return(read.obj)
   
 }
-
-
-
-
 #' Tracks files that read by functions not in adapr and captures the file information within dependency object
 #' @param file.name name of file (vectorized)
 #' @param description description of data file (vectorized)
@@ -68,7 +71,6 @@ ReadTrack <- function(file.name="data.csv",description="Data file"){
   # lightweight read.cap take small number of args
   # used file.name and description create file.information
   # reads from data directory
-
   if(!exists("source_info")){
     
     source_info <- list()
@@ -78,6 +80,8 @@ ReadTrack <- function(file.name="data.csv",description="Data file"){
   }
   
   # Vectorize
+  if(length(file.name)==0){stop("Error: ReadTrack (adapr) error: file length 0")}
+  
   if(length(file.name)>1){
     if(length(description)==1){description <- rep(description,length(file.name))}
     if(length(description)!=length(file.name)){stop("ReadTrack (adapr) error: file length description mismatch")}
@@ -92,7 +96,7 @@ ReadTrack <- function(file.name="data.csv",description="Data file"){
   
   if(!file.exists(file.path(inpath,file.name[i]))){stop(paste("Read error: file does not exists:",file.path(inpath,file.name)))}
   
-  file.info <- Create.file.info(inpath,basename(file.name[i]),description[i])
+  file.info <- createFileInfo(inpath,basename(file.name[i]),description[i])
   
   read.obj <- Read.cap(file.info,I,source_info)
   }

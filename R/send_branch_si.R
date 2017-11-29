@@ -4,10 +4,9 @@
 #' @param all logical indicating whether to send all branches in project 
 #' @export
 #' 
-
-send.branch.si <- function(source_info,branch_cut,all=FALSE){
+sendBranchSI <- function(source_info,branch_cut,all=FALSE){
   
-  project_info <- get.project.info.si(source_info)
+  project_info <- getProjectInfoSI(source_info)
   
   if(!all){
     
@@ -42,7 +41,7 @@ send.branch.si <- function(source_info,branch_cut,all=FALSE){
   
   dependency.file.paths <- file.path(programs$source.file.path,"Dependency",paste0(branch.names,".txt"))
   
-  swap.directory <- get.project.swap.directory(source_info$project.id)
+  swap.directory <- getProjectSwapPath(source_info$project.id)
   
   branch.dir <- file.path(swap.directory,"Branches",branch_cut)
   
